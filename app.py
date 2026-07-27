@@ -11,7 +11,7 @@ ATS Score""")
 #==========AGENT CODE==========
 
 # load module
-import IPython as ip
+
 import os
 import time
 import langchain
