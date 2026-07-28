@@ -24,6 +24,7 @@ import numpy as np
 import streamlit as st
 from langchain_community.document_loaders import PyMuPDFLoader
 from PIL import Image
+import base64
 
 # ==========API KEY LOAD==========
 
@@ -126,12 +127,16 @@ if uploaded_file is not None:
 
 # ==========GENERATE RESUME==========
 
-prompt = """You are a helpful AI assistant
-with job resume marker, your task is to give
-HTML format resume, with proper designing using recent CSS snd JS
-code, with  professional design format.
-Uer will upload data and return HTML format resume
-always use different color or stylling"""
+prompt = """you are a helpful ai assistant  with a job resume maker, 
+your task is to give html gormat resume,
+with a proper designing using recent html js css code,
+with professional degsine format,
+user will upload data and return html format resume make it diffrent colour scheme 
+and the resume should project m skill set  also make it look like professional,
+create side margins table also make the text gradient for heddings like professional summary
+IMPORTANT: wherever the profile photo goes in the resume, output exactly this tag and nothing else:
+<img src="PROFILE_IMAGE_PLACEHOLDER" style="width:100px;height:100px;border-radius:50%;">
+do not draw or generate any other image tag or placeholder circle yourself"""
 
 final_prompt = prompt + resume_maker_prompt()
 
@@ -149,7 +154,15 @@ query = final_prompt + user_details
 if st.button("Generate Resume"):
   with st.spinner("Running Agent...."):
     response = agent.invoke({'messages':[{'role':'user',"content":query}]})
+    print(response['messages'][-1].content)
     code = response['messages'][-1].content[-1]['text']
+
+# swap in the actual uploaded photo instead of the placeholder tag
+    if FILE is not None:
+        with open(save_path, "rb") as img_file:
+            b64_image = base64.b64encode(img_file.read()).decode()
+            data_uri = f"data:image/jpeg;base64,{b64_image}"
+            code = code.replace("PROFILE_IMAGE_PLACEHOLDER", data_uri)
 
     # st.markdown(code)
     st.html(code, width = "stretch", unsafe_allow_javascript = True)
