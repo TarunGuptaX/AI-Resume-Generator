@@ -140,7 +140,7 @@ do not draw or generate any other image tag or placeholder circle yourself"""
 
 final_prompt = prompt + resume_maker_prompt()
 
-user_info = st.text_input("Enter your Information")
+user_info = st.text_area("Enter your Information")
 user_details = f"""Use details: given below:
 Resume info: {user_info}
 Photo: {uploaded_file}
