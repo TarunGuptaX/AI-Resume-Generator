@@ -11,7 +11,6 @@ ATS Score""")
 #==========AGENT CODE==========
 
 # load module
-
 import os
 import time
 import langchain
@@ -24,6 +23,7 @@ from langchain.messages import SystemMessage, HumanMessage
 import numpy as np
 import streamlit as st
 from langchain_community.document_loaders import PyMuPDFLoader
+from PIL import Image
 
 # ==========API KEY LOAD==========
 
@@ -31,6 +31,12 @@ GOOGLE_API_KEY = st.sidebar.text_input("GOOGLE_API_KEY", type = "password")
 GROQ_API_KEY = st.sidebar.text_input("GROQ_API_KEY", type = "password")
 TAVILY_API_KEY = st.sidebar.text_input("TAVILY_API_KEY", type = "password")
 
+if not(GOOGLE_API_KEY) and not (GROQ_API_KEY) and not (TAVILY_API_KEY):
+    st.sidebar.warning("Pass API Key")
+    st.stop()
+else:
+    st.success("API Key Loaded")
+    
 # ==========MODEL BUILDING==========
 
 model = ChatGoogleGenerativeAI(
@@ -83,6 +89,7 @@ def prompt_generator(agent = agent):
   return "Prompt file generated successfully, agent can read it"
 
 prompt_generator(model)
+
 # tool 2:
 def resume_maker_prompt():
   """this function just gives
@@ -93,7 +100,32 @@ def resume_maker_prompt():
   return prompt
 
 resume_maker_prompt()
+
+# =================UPLOAD IMAGE =================
+uploaded_file = st.sidebar.file_uploader(
+    "Choose an image file", 
+    type=["jpg", "jpeg", "png", "webp"]
+)
+if uploaded_file is not None:
+    try:
+        image = Image.open(uploaded_file)
+        
+        st.sidebar.image(image, caption="Uploaded Image", use_container_width=True)
+        
+        if image.mode in ("RGBA", "P"):
+            image = image.convert("RGB")
+        base_name = os.path.splitext(uploaded_file.name)[0]
+        save_path = f"{base_name}.jpg"
+        
+        # Save the image to the current working directory
+        image.save(save_path, "JPEG")  
+        st.sidebar.success(f"🎉 Image successfully saved as `{save_path}`!")
+        
+    except Exception as e:
+        st.error(f"Error processing image: {e}")
+
 # ==========GENERATE RESUME==========
+
 prompt = """You are a helpful AI assistant
 with job resume marker, your task is to give
 HTML format resume, with proper designing using recent CSS snd JS
@@ -103,9 +135,14 @@ always use different color or stylling"""
 
 final_prompt = prompt + resume_maker_prompt()
 
-user_details = """Use details: given below:
-Give Python Developer Resume
-name = Tarun"""
+user_info = st.text_input("Enter your Information")
+user_details = f"""Use details: given below:
+Resume info: {user_info}
+Photo: {uploaded_file}
+Photo present in current directory with name as
+uploaded_file, and once resume generated give 
+download button in same html code
+Default if not given: Give Python Developer Resume"""
 
 query = final_prompt + user_details
 
