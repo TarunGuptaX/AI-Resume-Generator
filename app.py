@@ -151,6 +151,18 @@ Default if not given: Give Python Developer Resume"""
 
 query = final_prompt + user_details
 
+OPTIONS = ["DELHI","NOIDA","GURGAON/GURUGRAM",'KANPUR','LUCKNOW','BANGLORE','PUNE']
+LOCATION = st.sidebar.multiselect('SELECT LOCATION: ',options = OPTIONS )
+JOB_PROFILE = ["PYTHON DEVELOPER",'GEN AI','FULL-STACK DEVELOPER','DATA ANALYST']
+PROFILE = st.sidebar.multiselect("SELECT JOB ROLE", options = JOB_PROFILE)
+
+job_prompt = f"""Based on {PROFILE} jobs in {LOCATION}, I 
+want latest job news in using tavily, 
+try top 10 search or whatever available
+and give result like naukri theme design with
+job name, job desc, salary,
+apply link"""
+
 if st.button("Generate Resume"):
   with st.spinner("Running Agent...."):
     response = agent.invoke({'messages':[{'role':'user',"content":query}]})
@@ -164,5 +176,10 @@ if st.button("Generate Resume"):
             data_uri = f"data:image/jpeg;base64,{b64_image}"
             code = code.replace("PROFILE_IMAGE_PLACEHOLDER", data_uri)
 
-    # st.markdown(code)
     st.html(code, width = "stretch", unsafe_allow_javascript = True)
+      
+    st.divider()
+    response = agent.invoke({'messages':[{'role':'user','content':job_prompt}]})
+    
+    job_code = response['messages'][-1].content[-1]['text']
+    st.html(job_code , width="stretch" , unsafe_allow_javascript=True)
